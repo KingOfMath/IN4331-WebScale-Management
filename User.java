@@ -12,14 +12,13 @@ public class User {
     @Column(columnDefinition = "serial")
     private Long userId;
 
-    @NotBlank
-    private Integer credit;
+    private int credit;
 
-    public Integer getCredit() {
+    public int getCredit() {
         return credit;
     }
 
-    public void setCredit(Integer credit) {
+    public void setCredit(int credit) {
         this.credit = credit;
     }
 
@@ -31,7 +30,7 @@ public class User {
         return this.userId;
     }
 
-    public Boolean subtract(Integer credit) {
+    public Boolean subtract(int credit) {
         if (this.credit > credit) {
             this.credit -= credit;
             return true;
@@ -39,7 +38,7 @@ public class User {
         return false;
     }
 
-    public Boolean add(Integer credit) {
+    public Boolean add(int credit) {
         this.credit += credit;
         return true;
     }

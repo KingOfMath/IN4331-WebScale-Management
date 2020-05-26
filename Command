@@ -1,0 +1,7 @@
+curl --data '{"credit" : 233}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
+
+
+
+
+This is a template command to create new user into the cluster.

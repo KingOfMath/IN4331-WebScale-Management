@@ -33,7 +33,7 @@ public class UserController {
     @GetMapping("/users/find/{user_id}")
     public Map<Long,Integer> getUser(@PathVariable Long userId) {
         Map<Long, Integer> map = new HashMap<>();
-        Integer credit = userRepository.findById(userId)
+        int credit = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId)).getCredit();
         map.put(userId,credit);
         return map;
@@ -49,7 +49,7 @@ public class UserController {
     }
 
     @PostMapping("/users/credit/subtract/{user_id}/{amount}")
-    public Boolean subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
+    public Boolean subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") int credit){
         return userRepository.findById(userId)
                 .map(user -> {
                     return user.subtract(credit);
@@ -57,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping("/users/credit/add/{user_id}/{amount}")
-    public Boolean addCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
+    public Boolean addCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") int credit){
         return userRepository.findById(userId)
                 .map(user -> {
                     return user.add(credit);

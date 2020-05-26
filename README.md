@@ -26,3 +26,6 @@ Orchestrator service: a communication service connecting microservices in terms 
 General goal: What can we do to enforce transaction consistency across different microservices in one yugabyte db.
 
 Final state of the database will be compared against a database where all requests/transactions happened sequentially (Lecture)
+
+Local deployment with proper user service via spring boot have succeeded.
+
