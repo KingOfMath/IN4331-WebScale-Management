@@ -29,3 +29,12 @@ Final state of the database will be compared against a database where all reques
 
 Local deployment with proper user service via spring boot have succeeded.
 
+##Local test progress:
+
+Deploy the yugabyteDB
+
+Deploy the spring boot service
+
+Using the commands sheet for adding users
+
+Check the results with localhost:8080/users
