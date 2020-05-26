@@ -29,7 +29,7 @@ Final state of the database will be compared against a database where all reques
 
 Local deployment with proper user service via spring boot have succeeded.
 
-#Local test progress:
+# Local test progress:
 
 Deploy the yugabyteDB
 
