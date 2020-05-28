@@ -21,7 +21,7 @@ public class StockController {
     @Autowired
     private StockRepository stockRepository;
 
-    @GetMapping("/stocks")
+    @GetMapping("/stock")
     public Page<Stock> getStocks(Pageable pageable) {
         return stockRepository.findAll(pageable);
     }
