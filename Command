@@ -1,7 +1,26 @@
-curl --data '{"credit" : 233}' \
+creating user:
+curl --data '{"credit" : 333}' \
        -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
 
+get stock:
+curl http://localhost:8080/stock
 
 
+create stock:
+curl --data '{"units" : 5}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/stock/item/create/20
 
-This is a template command to create new user into the cluster.
+add stock:
+curl --data '{"units" : 5}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/stock/add/1/35
+
+subtract stock:
+curl --data '{"units" : 5}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/stock/subtract/1/35
+
+find stock:
+curl http://localhost:8080/stock/find/1
+
+
+Stop the spring boot:
+fuser -k 8080/tcp
