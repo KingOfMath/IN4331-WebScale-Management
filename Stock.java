@@ -47,8 +47,15 @@ public class Stock {
     }
 
     public Boolean subtractUnits(Integer units) {
-        if (this.units >= units)
-            this.units -= units;
-        return true;
+        try{
+            if (this.units >= units)
+                this.units -= units;
+            return true;
+        }catch (Exception e){
+            System.out.println("Large shabi!");
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }
