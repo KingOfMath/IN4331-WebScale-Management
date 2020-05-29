@@ -21,10 +21,10 @@ public class StockController {
     @Autowired
     private StockRepository stockRepository;
 
-//    @GetMapping("/stock")
-//    public Page<Stock> getStocks(Pageable pageable) {
-//        return stockRepository.findAll(pageable);
-//    }
+    @GetMapping("/stock")
+    public Page<Stock> getStocks(Pageable pageable) {
+        return stockRepository.findAll(pageable);
+    }
 
     @GetMapping("/stock/find/{item_id}")
     public Map<Integer, Double> getStock(@PathVariable("item_id") Long stockId){
@@ -58,9 +58,17 @@ public class StockController {
     public Boolean subtractStock(@PathVariable("item_id") Long stockId, @PathVariable("number") Integer units){
         return stockRepository.findById(stockId)
                 .map(stock -> {
-                    stock.subtractUnits(units);
-                    stockRepository.save(stock);
-                    return true;
+                    if(stock.subtractUnits(units)) {
+                        stockRepository.save(stock);
+                        return true;
+                    } else {
+                        try {
+                            throw new Exception("error!");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return false;
                 }).orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId));
     }
 }
