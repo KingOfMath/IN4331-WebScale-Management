@@ -27,18 +27,18 @@ public class StockController {
     }
 
     @GetMapping("/stock/find/{item_id}")
-    public Map<Integer, Double> getStock(@PathVariable("item_id") Long stockId){
-        Map<Integer, Double> map = new HashMap<>();
+    public Map<Integer, Integer> getStock(@PathVariable("item_id") Long stockId){
+        Map<Integer, Integer> map = new HashMap<>();
         Integer units = stockRepository.findById(stockId)
                 .orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId)).getUnits();
-        Double price = stockRepository.findById(stockId)
+        Integer price = stockRepository.findById(stockId)
                 .orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId)).getPrice();
         map.put(units,price);
         return map;
     }
 
     @PostMapping("/stock/item/create/{price}")
-    public Long createStock(@PathVariable("price") double price, @Valid @RequestBody Stock stock) {
+    public Long createStock(@PathVariable("price") Integer price, @Valid @RequestBody Stock stock) {
         stock.setPrice(price);
         stockRepository.save(stock);
         return stock.getStockId();

@@ -1,6 +1,7 @@
 package com.yugabyte.springdemo.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Entity
@@ -13,8 +14,8 @@ public class Stock {
 
     private Integer units;
 
-    @Column(columnDefinition = "numeric(10,2)")
-    private double price;
+    @NotBlank
+    private Integer price;
 
 
     public Long getStockId() {
@@ -25,11 +26,11 @@ public class Stock {
         this.stockId = stockId;
     }
 
-    public double getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
 
