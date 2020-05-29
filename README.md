@@ -32,8 +32,17 @@ Local deployment with proper user service via spring boot have succeeded.
 # Local test progress:
 
 Deploy the yugabyteDB
+```
+./bin/yb-ctl --rf 3 create
+```
 
 Deploy the spring boot service
+
+```
+mvn clean
+mvn -DskipTests package
+mvn spring-boot:run
+```
 
 Using the commands sheet for adding users
 
