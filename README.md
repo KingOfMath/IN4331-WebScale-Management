@@ -47,3 +47,31 @@ mvn spring-boot:run
 Using the commands sheet for adding users
 
 Check the results with localhost:8080/users
+
+
+## Model User
+### List user
+```
+curl http://localhost:8080/users
+```
+### Create user
+```
+curl --data '{"credit" : 333}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
+```
+### Find user
+```
+curl http://localhost:8080/users/find/{userid}
+```
+### Remove user
+```
+curl -X DELETE http://localhost:8080/users/remove/{userid}
+```
+### Add user credit
+```
+curl -X POST http://localhost:8080/users/credit/add/{userid}/{amount}
+```
+### Subtract user credit
+```
+curl -X POST http://localhost:8080/users/credit/subtract/{userid}/{amount}
+```
