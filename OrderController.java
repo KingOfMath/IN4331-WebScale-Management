@@ -31,7 +31,7 @@ public class OrderController {
     }
 
     @PostMapping("/orders/create/{user_id}")
-    public UUID createOrder(@Valid @RequestBody Order order, @PathVariable Long userId) {
+    public UUID createOrder(@Valid @RequestBody Order order, @PathVariable("user_id") Long userId) {
 
         Integer orderTotal = 0;
         for (Stock orderStock : order.getStocks()) {
@@ -40,8 +40,8 @@ public class OrderController {
                         return stock.getPrice() * stock.getUnits();
                     }).orElseThrow(() -> new ResourceNotFoundException("Stock not found with Id: " + orderStock.getStockId()));
         }
-
         order.setOrderTotal(orderTotal);
+
         order.setUser(userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserId " + order.getUserId() + " not found")));
         Order newOrder = orderRepository.save(order);
@@ -49,14 +49,14 @@ public class OrderController {
         return newOrder.getOrderId();
     }
 
-    @GetMapping("/orders/find/{orderId}")
-    public Order getOrder(@PathVariable UUID orderId) {
+    @GetMapping("/orders/find/{order_id}")
+    public Order getOrder(@PathVariable("order_id") UUID orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
     }
 
     @DeleteMapping("/orders/remove/{order_id}")
-    public Boolean deleteOrder(@PathVariable UUID orderId) {
+    public Boolean deleteOrder(@PathVariable("order_id") UUID orderId) {
         return orderRepository.findById(orderId)
                 .map(order -> {
                     orderRepository.delete(order);
@@ -71,6 +71,8 @@ public class OrderController {
                     return stockRepository.findById(itemId)
                             .map(item -> {
                                 order.addStock(item);
+                                Integer old = order.getOrderTotal();
+                                order.setOrderTotal(old + item.getPrice() * item.getUnits());
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -84,6 +86,8 @@ public class OrderController {
                     return stockRepository.findById(itemId)
                             .map(item -> {
                                 order.removeStock(item);
+								Integer old = order.getOrderTotal();
+								order.setOrderTotal(old - item.getPrice() * item.getUnits());
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
