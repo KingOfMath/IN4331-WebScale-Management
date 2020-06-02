@@ -31,16 +31,16 @@ public class UserController {
     }
 
     @GetMapping("/users/find/{user_id}")
-    public Map<Long,Integer> getUser(@PathVariable Long userId) {
+    public Map<Long,Integer> getUser(@PathVariable("user_id") Long userId) {
         Map<Long, Integer> map = new HashMap<>();
-        int credit = userRepository.findById(userId)
+        Integer credit = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId)).getCredit();
         map.put(userId,credit);
         return map;
     }
 
     @DeleteMapping("/users/remove/{user_id}")
-    public Boolean deleteUser(@PathVariable Long userId) {
+    public Boolean deleteUser(@PathVariable("user_id") Long userId) {
         return userRepository.findById(userId)
                 .map(user -> {
                     userRepository.delete(user);
@@ -49,18 +49,30 @@ public class UserController {
     }
 
     @PostMapping("/users/credit/subtract/{user_id}/{amount}")
-    public Boolean subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") int credit){
+    public Boolean subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
         return userRepository.findById(userId)
                 .map(user -> {
-                    return user.subtract(credit);
+                    if(user.subtract(credit)) {
+                        userRepository.save(user);
+                        return true;
+                    } else {
+                        try {
+                            throw new Exception("error!");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return false;
                 }).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
     }
 
     @PostMapping("/users/credit/add/{user_id}/{amount}")
-    public Boolean addCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") int credit){
+    public Boolean addCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
         return userRepository.findById(userId)
                 .map(user -> {
-                    return user.add(credit);
+                    user.add(credit);
+                    userRepository.save(user);
+                    return true;
                 }).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
     }
 }
