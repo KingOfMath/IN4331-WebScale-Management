@@ -56,22 +56,46 @@ curl http://localhost:8080/users
 ```
 ### Create user
 ```
-curl --data '{"credit" : 333}' \
+curl --data '{"credit" : {credit}}' \
        -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
 ```
 ### Find user
 ```
-curl http://localhost:8080/users/find/{userid}
+curl http://localhost:8080/users/find/{userId}
 ```
 ### Remove user
 ```
-curl -X DELETE http://localhost:8080/users/remove/{userid}
+curl -X DELETE http://localhost:8080/users/remove/{userId}
 ```
 ### Add user credit
 ```
-curl -X POST http://localhost:8080/users/credit/add/{userid}/{amount}
+curl -X POST http://localhost:8080/users/credit/add/{userId}/{amount}
 ```
 ### Subtract user credit
 ```
-curl -X POST http://localhost:8080/users/credit/subtract/{userid}/{amount}
+curl -X POST http://localhost:8080/users/credit/subtract/{userId}/{amount}
+```
+
+
+## Model Stock
+### Get stock
+```
+curl http://localhost:8080/stock
+```
+### Create stock
+```
+curl --data '{"units" : {units}}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/stock/item/create/{price}
+```
+### Find stock
+```
+curl http://localhost:8080/stock/find/{stock_id}
+```
+### Add stock
+```
+curl -X POST http://localhost:8080/stock/add/{stockId}/{amount}
+```
+### Subtract stock
+```
+curl -X POST http://localhost:8080/stock/subtract/{stockId}/{amount}
 ```
