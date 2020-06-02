@@ -7,7 +7,6 @@ import com.yugabyte.springdemo.model.Payment;
 import com.yugabyte.springdemo.repository.OrderRepository;
 import com.yugabyte.springdemo.repository.PaymentRepository;
 import com.yugabyte.springdemo.repository.UserRepository;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,14 +34,15 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/pay/{user_id}/{order_id}/{amount}")
-    public Boolean pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId, @PathVariable("amount") Integer amount) {
+    public Boolean pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId) {
         return orderRepository.findById(orderId)
                 .map(order -> {
                     return userRepository.findById(userId)
                             .map(user -> {
                                 if (!order.getPaid()) {
-                                    user.subtract(amount);
+                                    user.subtract(order.getOrderTotal());
                                     userRepository.save(user);
+                                    order.setPaid(true);
                                     return true;
                                 }
                                 return false;
@@ -59,6 +59,7 @@ public class PaymentController {
                                 if (order.getPaid()) {
                                     user.add(order.getOrderTotal());
                                     userRepository.save(user);
+                                    order.setPaid(false);
                                     return true;
                                 }
                                 return false;
