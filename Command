@@ -1,10 +1,27 @@
+Model User:
+list user:
+curl http://localhost:8080/users
+
 creating user:
 curl --data '{"credit" : 333}' \
        -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
 
+find user:
+curl http://localhost:8080/users/find/1
+
+remove user:
+curl -X DELETE http://localhost:8080/users/remove/2
+
+credit add:
+curl -X POST http://localhost:8080/users/credit/add/1/200
+
+credit subtract:
+curl -X POST http://localhost:8080/users/credit/subtract/1/200
+
+
+Model Stock:
 get stock:
 curl http://localhost:8080/stock
-
 
 create stock:
 curl --data '{"units" : 5}' \
@@ -20,6 +37,12 @@ curl --data '{"units" : 5}' \
 
 find stock:
 curl http://localhost:8080/stock/find/1
+
+
+Model Order:
+create order:
+curl --data '{"credit" : 333}' \
+       -v -X POST -H 'Content-Type:application/json' http://localhost:8080/users/create
 
 
 Stop the spring boot:
