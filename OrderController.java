@@ -23,6 +23,9 @@ public class OrderController {
     @Autowired
     private StockRepository stockRepository;
 
+    @Autowired
+    private CartRepository cartRepository;
+
     @GetMapping("/orders")
     public Page<Order> getOrders(Pageable pageable) {
         return orderRepository.findAll(pageable);
@@ -32,9 +35,9 @@ public class OrderController {
     public UUID createOrder(@Valid @RequestBody Order order, @PathVariable("user_id") Long userId) {
 
         Integer orderTotal = 0;
-        for (Order.Cart cart : order.getCarts()) {
-            orderTotal += cart.getPrice() * cart.getUnits();
-        }
+//        for (Order.Cart cart : order.getCarts()) {
+//            orderTotal += cart.getPrice() * cart.getUnits();
+//        }
         order.setOrderTotal(orderTotal);
         //order.setUserId(userId);
 
@@ -72,16 +75,22 @@ public class OrderController {
                                 item.setUnits(amount);
                                 boolean flag = false;
                                 Integer old = order.getOrderTotal();
-                                for (Order.Cart cart : order.getCarts()) {
-                                    if (cart.getCartId().equals(itemId)) {
-                                        Integer temp = cart.getUnits();
-                                        cart.setUnits(temp + amount);
+//                                for (Order.Cart cart : order.getCarts()) {
+//                                    if (cart.getCartId().equals(itemId)) {
+//                                        Integer temp = cart.getUnits();
+//                                        cart.setUnits(temp + amount);
+//                                        flag = true;
+//                                    }
+//                                }
+                                for (Long id : order.cartMap.keySet()) {
+                                    if (id.equals(itemId)) {
+                                        order.cartMap.put(id, order.cartMap.get(id) + amount);
                                         flag = true;
                                     }
                                 }
                                 if (!flag) {
-									order.addCart(new Order.Cart(itemId, item.getUnits(), amount));
-								}
+                                    order.cartMap.put(itemId, amount);
+                                }
 
                                 order.setOrderTotal(old + item.getPrice() * amount);
                                 orderRepository.save(order);
@@ -98,15 +107,23 @@ public class OrderController {
                             .map(item -> {
                                 Integer oldUnits = item.getUnits();
                                 Integer old = order.getOrderTotal();
-                                for (Order.Cart cart: order.getCarts()) {
-                                    if (cart.getCartId().equals(itemId)) {
-                                        Integer temp = cart.getUnits();
-                                        if (temp - amount >= 0)
-                                            cart.setUnits(temp - amount);
-                                        else
-                                            return false;
-                                    }
-                                }
+//                                for (Order.Cart cart : order.getCarts()) {
+//                                    if (cart.getCartId().equals(itemId)) {
+//                                        Integer temp = cart.getUnits();
+//                                        if (temp - amount >= 0)
+//                                            cart.setUnits(temp - amount);
+//                                        else
+//                                            return false;
+//                                    }
+//                                }
+								for (Long id : order.cartMap.keySet()) {
+									if (id.equals(itemId)) {
+										if (order.cartMap.get(id) - amount >= 0)
+											order.cartMap.put(id, order.cartMap.get(id) + amount);
+										else
+											return false;
+									}
+								}
                                 item.setUnits(oldUnits + amount);
                                 stockRepository.save(item);
 
@@ -128,10 +145,11 @@ public class OrderController {
         Integer totalCost = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getOrderTotal();
         String cartId = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getCartId();
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).cartMap.toString();
+
         String stockId = orderRepository.findById(orderId)
-				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getStockId();
-        return "order_id:" + orderId + ", paid:" + paid + ", cart_id:" + cartId + ", stock_id" + stockId + ", user_id:" + userId + ", totalCost:" + totalCost+"\n";
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getStockId();
+        return "order_id:" + orderId + ", paid:" + paid + ", cart_id:" + cartId + ", user_id:" + userId + ", totalCost:" + totalCost + "\n";
     }
 
     @PostMapping("/orders/checkout/{order_id}")
