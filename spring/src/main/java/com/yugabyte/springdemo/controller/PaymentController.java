@@ -33,15 +33,17 @@ public class PaymentController {
         return paymentRepository.findAll(pageable);
     }
 
-    @PostMapping("/payment/pay/{user_id}/{order_id}/{amount}")
-    public Boolean pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId, @PathVariable("amount") Integer amount) {
+    @PostMapping("/payment/pay/{user_id}/{order_id}")
+    public Boolean pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId) {
         return orderRepository.findById(orderId)
                 .map(order -> {
                     return userRepository.findById(userId)
                             .map(user -> {
                                 if (!order.getPaid()) {
-                                    user.subtract(amount);
+                                    user.subtract(order.getOrderTotal());
                                     userRepository.save(user);
+                                    order.setPaid(true);
+                                    orderRepository.save(order);
                                     return true;
                                 }
                                 return false;
@@ -58,6 +60,8 @@ public class PaymentController {
                                 if (order.getPaid()) {
                                     user.add(order.getOrderTotal());
                                     userRepository.save(user);
+                                    order.setPaid(false);
+                                    orderRepository.save(order);
                                     return true;
                                 }
                                 return false;
