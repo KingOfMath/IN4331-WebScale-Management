@@ -32,11 +32,8 @@ public class OrderController {
     public UUID createOrder(@Valid @RequestBody Order order, @PathVariable("user_id") Long userId) {
 
         Integer orderTotal = 0;
-        for (Stock orderStock : order.getStocks()) {
-            orderTotal += stockRepository.findById(orderStock.getStockId())
-                    .map(stock -> {
-                        return stock.getPrice() * stock.getUnits();
-                    }).orElseThrow(() -> new ResourceNotFoundException("Stock not found with Id: " + orderStock.getStockId()));
+        for (Order.Cart cart : order.getCarts()) {
+            orderTotal += cart.getPrice() * cart.getUnits();
         }
         order.setOrderTotal(orderTotal);
         //order.setUserId(userId);
@@ -44,7 +41,7 @@ public class OrderController {
         order.setPaid(false);
 
         order.setUser(userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("UserId " + order.getUserId() + " not found")));
+                .orElseThrow(() -> new ResourceNotFoundException("UserId " + order.getUser().getUserId() + " not found")));
         Order newOrder = orderRepository.save(order);
 
         return newOrder.getOrderId();
@@ -75,17 +72,18 @@ public class OrderController {
                                 item.setUnits(amount);
                                 boolean flag = false;
                                 Integer old = order.getOrderTotal();
-                                for (Stock orderStock : order.getStocks()) {
-                                    if (orderStock.getStockId().equals(itemId)) {
-                                        Integer temp = orderStock.getUnits();
-                                        orderStock.setUnits(temp + amount);
+                                for (Order.Cart cart : order.getCarts()) {
+                                    if (cart.getCartId().equals(itemId)) {
+                                        Integer temp = cart.getUnits();
+                                        cart.setUnits(temp + amount);
                                         flag = true;
                                     }
                                 }
-                                if (!flag)
-                                    order.addStock(item);
+                                if (!flag) {
+									order.addCart(new Order.Cart(itemId, item.getUnits(), amount));
+								}
 
-                                order.setOrderTotal(old + item.getPrice() * item.getUnits());
+                                order.setOrderTotal(old + item.getPrice() * amount);
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -100,11 +98,11 @@ public class OrderController {
                             .map(item -> {
                                 Integer oldUnits = item.getUnits();
                                 Integer old = order.getOrderTotal();
-                                for (Stock orderStock : order.getStocks()) {
-                                    if (orderStock.getStockId().equals(itemId)) {
-                                        Integer temp = orderStock.getUnits();
+                                for (Order.Cart cart: order.getCarts()) {
+                                    if (cart.getCartId().equals(itemId)) {
+                                        Integer temp = cart.getUnits();
                                         if (temp - amount >= 0)
-                                            orderStock.setUnits(temp - amount);
+                                            cart.setUnits(temp - amount);
                                         else
                                             return false;
                                     }
@@ -114,7 +112,7 @@ public class OrderController {
 
                                 item.setUnits(amount);
 
-                                order.setOrderTotal(old - item.getPrice() * item.getUnits());
+                                order.setOrderTotal(old - item.getPrice() * amount);
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -129,10 +127,11 @@ public class OrderController {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getUser().getUserId();
         Integer totalCost = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getOrderTotal();
+        String cartId = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getCartId();
         String stockId = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getStockId();
-        return "order_id:" + orderId + ", paid:" + paid + ", stock_id:" + stockId + ", user_id:" + userId + ", totalCost:" + totalCost;
-
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getStockId();
+        return "order_id:" + orderId + ", paid:" + paid + ", cart_id:" + cartId + ", stock_id" + stockId + ", user_id:" + userId + ", totalCost:" + totalCost+"\n";
     }
 
     @PostMapping("/orders/checkout/{order_id}")
@@ -141,7 +140,7 @@ public class OrderController {
         Integer totalCost = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getOrderTotal();
         Long userId = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getUserId();
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getUser().getUserId();
 
         String cmd = "curl http://localhost:8080/payment/pay/"
                 + userId + "/" + orderId + "/" + totalCost;

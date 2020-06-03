@@ -8,6 +8,42 @@ import javax.validation.constraints.NotBlank;
 @Table(name = "orders")
 public class Order extends AuditModel {
 
+	public static class Cart {
+		private Long cartId;
+		private Integer units;
+		private Integer price;
+
+		public Long getCartId() {
+			return this.cartId;
+		}
+
+		public Integer getUnits() {
+			return this.units;
+		}
+
+		public Integer getPrice(){
+			return this.price;
+		}
+
+		public void setCartId(Long cartId) {
+			this.cartId = cartId;
+		}
+
+		public void setUnits(Integer units) {
+			this.units = units;
+		}
+
+		public void setPrice(Integer price) {
+			this.price = price;
+		}
+
+		public Cart(Long cartId, Integer units, Integer price){
+			this.cartId = cartId;
+			this.units = units;
+			this.price = price;
+		}
+	}
+
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID orderId;
@@ -15,16 +51,17 @@ public class Order extends AuditModel {
 	@ManyToOne
 	@JoinColumn(name="user_id")
 	private User user;
-	
+
 	@Transient
 	private Long userId;
-	
-	@NotBlank
+
 	private Integer orderTotal;
 	
-	@Transient
+	//@Transient
 	@ElementCollection
 	private Set<Stock> stocks = new HashSet<>();
+
+	private Set<Order.Cart> carts = new HashSet<>();
 
 	private Boolean paid;
 
@@ -69,7 +106,7 @@ public class Order extends AuditModel {
 	}
 	
 	public Set<Stock> getStocks() {
-		return stocks;
+		return this.stocks;
 	}
 	
 	public void setStocks(Set<Stock> stocks) {
@@ -91,4 +128,28 @@ public class Order extends AuditModel {
         }
         return s.toString();
     }
+
+	public Set<Cart> getCarts() {
+		return this.carts;
+	}
+
+	public void setCarts(Set<Cart> carts) {
+		this.carts = carts;
+	}
+
+	public void addCart(Cart cart){
+    	this.carts.add(cart);
+	}
+
+	public void removeCart(Cart cart){
+    	this.carts.remove(cart);
+	}
+
+	public String getCartId(){
+		StringBuilder s = new StringBuilder(" ");
+		for (Cart cart: this.carts) {
+			s.append(cart.getCartId()).append(" ");
+		}
+		return s.toString();
+	}
 }
