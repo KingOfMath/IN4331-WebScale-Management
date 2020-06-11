@@ -12,6 +12,9 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.UUID;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class OrderController {
     @Autowired
@@ -32,7 +35,7 @@ public class OrderController {
     }
 
     @PostMapping("/orders/create/{user_id}")
-    public UUID createOrder(@Valid @RequestBody Order order, @PathVariable("user_id") Long userId) {
+    public Map<String, UUID> createOrder(@Valid @RequestBody Order order, @PathVariable("user_id") Long userId) {
 
         Integer orderTotal = 0;
 //        for (Order.Cart cart : order.getCarts()) {
@@ -47,12 +50,15 @@ public class OrderController {
                 .orElseThrow(() -> new ResourceNotFoundException("UserId " + order.getUser().getUserId() + " not found")));
         Order newOrder = orderRepository.save(order);
 
-        return newOrder.getOrderId();
+        Map<String, UUID> map = new HashMap<>();
+        map.put("order_id", newOrder.getOrderId());
+
+        return map;
     }
 
     @DeleteMapping("/orders/remove/{order_id}")
-    public Boolean deleteOrder(@PathVariable("order_id") UUID orderId) {
-        return orderRepository.findById(orderId)
+    public void deleteOrder(@PathVariable("order_id") UUID orderId) {
+        orderRepository.findById(orderId)
                 .map(order -> {
                     orderRepository.delete(order);
                     return true;
@@ -60,8 +66,8 @@ public class OrderController {
     }
 
     @PostMapping("/orders/addItem/{order_id}/{item_id}/{amount}")
-    public Boolean addItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId, @PathVariable("amount") Integer amount) {
-        return orderRepository.findById(orderId)
+    public void addItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId, @PathVariable("amount") Integer amount) {
+        orderRepository.findById(orderId)
                 .map(order -> {
                     return stockRepository.findById(itemId)
                             .map(item -> {
@@ -101,8 +107,8 @@ public class OrderController {
     }
 
     @DeleteMapping("/orders/removeItem/{order_id}/{item_id}/{amount}")
-    public Boolean removeItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId, @PathVariable("amount") Integer amount) {
-        return orderRepository.findById(orderId)
+    public void removeItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId, @PathVariable("amount") Integer amount) {
+        orderRepository.findById(orderId)
                 .map(order -> {
                     return stockRepository.findById(itemId)
                             .map(item -> {

@@ -25,32 +25,36 @@ public class UserController {
     }
 
     @PostMapping("/users/create")
-    public Long createUser(@Valid @RequestBody User user) {
+    public Map<String, Long> createUser(@Valid @RequestBody User user) {
         userRepository.save(user);
-        return user.getUserId();
+        Map<String, Long> map = new HashMap<>();
+        map.put("user_id", user.getUserId());
+        return map;
     }
 
     @GetMapping("/users/find/{user_id}")
-    public Map<Long,Integer> getUser(@PathVariable("user_id") Long userId) {
-        Map<Long, Integer> map = new HashMap<>();
+    public Map<String, Integer> getUser(@PathVariable("user_id") Long userId) {
         Integer credit = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId)).getCredit();
-        map.put(userId,credit);
+
+        Map<String, Integer> map = new HashMap<>();
+        map.put("user_id", userId.intValue());
+        map.put("credit", credit);
         return map;
     }
 
     @DeleteMapping("/users/remove/{user_id}")
-    public Boolean deleteUser(@PathVariable("user_id") Long userId) {
-        return userRepository.findById(userId)
-                .map(user -> {
-                    userRepository.delete(user);
-                    return true;
-                }).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+    public void deleteUser(@PathVariable("user_id") Long userId) {
+        userRepository.findById(userId)
+            .map(user -> {
+                userRepository.delete(user);
+                return true;
+            }).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
     }
 
     @PostMapping("/users/credit/subtract/{user_id}/{amount}")
-    public Boolean subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
-        return userRepository.findById(userId)
+    public void subtractCredit(@PathVariable("user_id") Long userId, @PathVariable("amount") Integer credit){
+        userRepository.findById(userId)
                 .map(user -> {
                     if(user.subtract(credit)) {
                         userRepository.save(user);

@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class PaymentController {
     @Autowired
@@ -34,8 +37,8 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/pay/{user_id}/{order_id}")
-    public Boolean pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId) {
-        return orderRepository.findById(orderId)
+    public void pay(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId) {
+        orderRepository.findById(orderId)
                 .map(order -> {
                     return userRepository.findById(userId)
                             .map(user -> {
@@ -52,8 +55,8 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/cancel/{user_id}/{order_id}")
-    public Boolean cancel(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId){
-        return orderRepository.findById(orderId)
+    public void cancel(@PathVariable("user_id") Long userId, @PathVariable("order_id") UUID orderId){
+        orderRepository.findById(orderId)
                 .map(order -> {
                     return userRepository.findById(userId)
                             .map(user -> {
@@ -70,8 +73,11 @@ public class PaymentController {
     }
 
     @GetMapping("/payment/status/{order_id}")
-    public Boolean getStatus(@PathVariable("order_id") UUID orderId){
-        return orderRepository.findById(orderId)
+    public Map<String, Boolean> getStatus(@PathVariable("order_id") UUID orderId){
+        boolean paid = orderRepository.findById(orderId)
                 .map(Order::getPaid).orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("paid", paid);
+        return map;
     }
 }

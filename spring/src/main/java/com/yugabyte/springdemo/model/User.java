@@ -31,7 +31,7 @@ public class User {
     }
 
     public Boolean subtract(int credit) {
-        if (this.credit > credit) {
+        if (this.credit >= credit) {
             this.credit -= credit;
             return true;
         }

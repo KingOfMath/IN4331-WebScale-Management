@@ -27,26 +27,31 @@ public class StockController {
     }
 
     @GetMapping("/stock/find/{item_id}")
-    public Map<Integer, Integer> getStock(@PathVariable("item_id") Long stockId){
-        Map<Integer, Integer> map = new HashMap<>();
+    public Map<String, Integer> getStock(@PathVariable("item_id") Long stockId){
         Integer units = stockRepository.findById(stockId)
                 .orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId)).getUnits();
         Integer price = stockRepository.findById(stockId)
                 .orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId)).getPrice();
-        map.put(units,price);
+
+        Map<String, Integer> map = new HashMap<>();
+        map.put("stock", units);
+        map.put("price", price);
         return map;
     }
 
     @PostMapping("/stock/item/create/{price}")
-    public Long createStock(@PathVariable("price") Integer price, @Valid @RequestBody Stock stock) {
+    public Map<String, Long> createStock(@PathVariable("price") Integer price, @Valid @RequestBody Stock stock) {
         stock.setPrice(price);
+        stock.setUnits(0);
         stockRepository.save(stock);
-        return stock.getStockId();
+        Map<String, Long> map = new HashMap<>();
+        map.put("item_id", stock.getStockId());
+        return map;
     }
 
     @PostMapping("/stock/add/{item_id}/{number}")
-    public Boolean addStock(@PathVariable("item_id") Long stockId, @PathVariable("number") Integer units){
-        return stockRepository.findById(stockId)
+    public void addStock(@PathVariable("item_id") Long stockId, @PathVariable("number") Integer units){
+        stockRepository.findById(stockId)
                 .map(stock -> {
                     stock.addUnits(units);
                     stockRepository.save(stock);
@@ -55,20 +60,15 @@ public class StockController {
     }
 
     @PostMapping("/stock/subtract/{item_id}/{number}")
-    public Boolean subtractStock(@PathVariable("item_id") Long stockId, @PathVariable("number") Integer units){
-        return stockRepository.findById(stockId)
+    public void subtractStock(@PathVariable("item_id") Long stockId, @PathVariable("number") Integer units){
+        stockRepository.findById(stockId)
                 .map(stock -> {
                     if(stock.subtractUnits(units)) {
                         stockRepository.save(stock);
                         return true;
                     } else {
-                        try {
-                            throw new Exception("error!");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        throw new ResourceNotFoundException("Insufficient amount of stock available for item " + stockId);
                     }
-                    return false;
                 }).orElseThrow(() -> new ResourceNotFoundException("stock not found with id " + stockId));
     }
 }
