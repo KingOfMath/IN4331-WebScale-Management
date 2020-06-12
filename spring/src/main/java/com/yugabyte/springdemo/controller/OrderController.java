@@ -1,8 +1,11 @@
 package com.yugabyte.springdemo.controller;
 
 import com.yugabyte.springdemo.exception.ResourceNotFoundException;
-import com.yugabyte.springdemo.model.*;
-import com.yugabyte.springdemo.repository.*;
+import com.yugabyte.springdemo.model.Order;
+import com.yugabyte.springdemo.model.User;
+import com.yugabyte.springdemo.repository.OrderRepository;
+import com.yugabyte.springdemo.repository.StockRepository;
+import com.yugabyte.springdemo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,10 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.UUID;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class OrderController {
@@ -210,17 +212,22 @@ public class OrderController {
     }
 
     @PostMapping("/orders/checkout/{order_id}")
-    public Boolean checkout(@PathVariable("order_id") UUID orderId) throws IOException {
+    public void checkout(@PathVariable("order_id") UUID orderId) throws Exception {
 
-        Integer totalCost = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getOrderTotal();
-        Long userId = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId)).getUser().getUserId();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
+        Integer totalCost = order.getOrderTotal();
+        Long userId = order.getUser().getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
-        String cmd = "curl -X POST http://localhost:8080/payment/pay/"
-                + userId + "/" + orderId + "/" + totalCost;
-        Process process = Runtime.getRuntime().exec(cmd);
-        int exitVal = process.exitValue();
-        return exitVal == 0;
+        if (user.getCredit() >= totalCost && !order.getPaid()) {
+            user.subtract(order.getOrderTotal());
+            userRepository.save(user);
+            order.setPaid(true);
+            orderRepository.save(order);
+        } else {
+            throw new Exception("Not enough credit");
+        }
     }
 }
