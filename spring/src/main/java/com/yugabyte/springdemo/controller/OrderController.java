@@ -65,6 +65,41 @@ public class OrderController {
                 }).orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
     }
 
+    @PostMapping("/orders/addItem/{order_id}/{item_id}")
+    public void addItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId) {
+        int amount = 1;
+        orderRepository.findById(orderId)
+                .map(order -> {
+                    return stockRepository.findById(itemId)
+                            .map(item -> {
+                                Integer oldUnits = item.getUnits();
+                                if (oldUnits - amount >= 0) {
+                                    item.setUnits(oldUnits - amount);
+                                    stockRepository.save(item);
+                                } else
+                                    return false;
+
+                                boolean flag = false;
+                                Integer old = order.getOrderTotal();
+
+                                for (Long id : order.cartMap.keySet()) {
+                                    if (id.equals(itemId)) {
+                                        order.cartMap.put(id, order.cartMap.get(id) + amount);
+                                        flag = true;
+                                    }
+                                }
+                                if (!flag) {
+                                    order.cartMap.put(itemId, amount);
+                                    order.addStock(item);
+                                }
+
+                                order.setOrderTotal(old + item.getPrice() * amount);
+                                orderRepository.save(order);
+                                return true;
+                            }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
+                }).orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
+    }
+
     @PostMapping("/orders/addItem/{order_id}/{item_id}/{amount}")
     public void addItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId, @PathVariable("amount") Integer amount) {
         orderRepository.findById(orderId)
@@ -100,6 +135,33 @@ public class OrderController {
                                 }
 
                                 order.setOrderTotal(old + item.getPrice() * amount);
+                                orderRepository.save(order);
+                                return true;
+                            }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
+                }).orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
+    }
+
+    @DeleteMapping("/orders/removeItem/{order_id}/{item_id}")
+    public void removeItem(@PathVariable("order_id") UUID orderId, @PathVariable("item_id") Long itemId) {
+        int amount = 1;
+        orderRepository.findById(orderId)
+                .map(order -> {
+                    return stockRepository.findById(itemId)
+                            .map(item -> {
+                                Integer oldUnits = item.getUnits();
+                                Integer old = order.getOrderTotal();
+                                for (Long id : order.cartMap.keySet()) {
+                                    if (id.equals(itemId)) {
+                                        if (order.cartMap.get(id) - amount >= 0)
+                                            order.cartMap.put(id, order.cartMap.get(id) + amount);
+                                        else
+                                            return false;
+                                    }
+                                }
+                                item.setUnits(oldUnits + amount);
+                                stockRepository.save(item);
+
+                                order.setOrderTotal(old - item.getPrice() * amount);
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
