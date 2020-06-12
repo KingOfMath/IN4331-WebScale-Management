@@ -87,12 +87,12 @@ public class Order extends AuditModel {
 	    this.stocks.remove(stock);
     }
 
-    public String getStockId(){
-        StringBuilder s = new StringBuilder(" ");
-        for (Stock stock: this.stocks) {
-            s.append(stock.getStockId()).append(" ");
+    public Set<Long> getItemIds(){
+        Set<Long> set = new HashSet<>();
+        for (Stock stock : this.stocks) {
+            set.add(stock.getStockId());
         }
-        return s.toString();
+        return set;
     }
 
 //	public ArrayList<Cart> getCarts() {
