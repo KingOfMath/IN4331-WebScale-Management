@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -75,22 +74,22 @@ public class OrderController {
                     return stockRepository.findById(itemId)
                             .map(item -> {
                                 Integer oldUnits = item.getUnits();
-                                if (oldUnits - amount >= 0) {
-                                    item.setUnits(oldUnits - amount);
+                                if (oldUnits - 1 >= 0) {
+                                    item.setUnits(oldUnits - 1);
                                     stockRepository.save(item);
                                 } else
                                     return false;
 
 
                                 if (order.cartMap.containsKey(itemId)) {
-                                    order.cartMap.put(itemId, order.cartMap.get(itemId) + amount);
+                                    order.cartMap.put(itemId, order.cartMap.get(itemId) + 1);
                                 } else {
-                                    order.cartMap.put(itemId, amount);
+                                    order.cartMap.put(itemId, 1);
                                     order.addStock(item);
                                 }
 
                                 Integer old = order.getOrderTotal();
-                                order.setOrderTotal(old + item.getPrice() * amount);
+                                order.setOrderTotal(old + item.getPrice());
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -133,7 +132,7 @@ public class OrderController {
                     return stockRepository.findById(itemId)
                             .map(item -> {
                                 if (order.cartMap.containsKey(itemId)) {
-                                    Integer newAmount = order.cartMap.get(itemId) + amount;
+                                    Integer newAmount = order.cartMap.get(itemId) + 1;
                                     if (newAmount < 0) return false;
                                     if (newAmount == 0) {
                                         order.cartMap.remove(itemId);
@@ -145,11 +144,11 @@ public class OrderController {
                                 }
 
                                 Integer oldUnits = item.getUnits();
-                                item.setUnits(oldUnits + amount);
+                                item.setUnits(oldUnits + 1);
                                 stockRepository.save(item);
 
                                 Integer old = order.getOrderTotal();
-                                order.setOrderTotal(old - item.getPrice() * amount);
+                                order.setOrderTotal(old - item.getPrice());
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -179,7 +178,7 @@ public class OrderController {
                                 stockRepository.save(item);
 
                                 Integer old = order.getOrderTotal();
-                                order.setOrderTotal(old - item.getPrice() * amount);
+                                order.setOrderTotal(old - item.getPrice());
                                 orderRepository.save(order);
                                 return true;
                             }).orElseThrow(() -> new ResourceNotFoundException("Item not found with id " + itemId));
@@ -221,7 +220,12 @@ public class OrderController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
-        if (user.getCredit() >= totalCost && !order.getPaid()) {
+        for (Integer curr : order.cartMap.values()) {
+            if(curr < 1)
+                throw new Exception("Not enough stock");
+        }
+
+        if (user.getCredit() > totalCost && !order.getPaid()) {
             user.subtract(order.getOrderTotal());
             userRepository.save(user);
             order.setPaid(true);
