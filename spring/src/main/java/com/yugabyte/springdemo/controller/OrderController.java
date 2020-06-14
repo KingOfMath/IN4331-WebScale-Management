@@ -222,7 +222,7 @@ public class OrderController {
 
         for (Integer curr : order.cartMap.values()) {
             if(curr < 1)
-                throw new Exception("Not enough stock");
+                throw new ResourceNotFoundException("Not enough stock");
         }
 
         if (user.getCredit() > totalCost && !order.getPaid()) {
@@ -231,7 +231,7 @@ public class OrderController {
             order.setPaid(true);
             orderRepository.save(order);
         } else {
-            throw new Exception("Not enough credit");
+            throw new ResourceNotFoundException("Not enough credit");
         }
     }
 }
