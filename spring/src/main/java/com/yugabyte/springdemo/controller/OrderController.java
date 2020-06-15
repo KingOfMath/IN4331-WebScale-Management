@@ -220,7 +220,7 @@ public class OrderController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
-        for (Stock stock : order.getStocks()) {
+        for (com.yugabyte.springdemo.model.Stock stock : order.getStocks()) {
             if (stock.getUnits() < 1){
                 throw new ResourceNotFoundException("Not enough stock");
             }
