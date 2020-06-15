@@ -220,8 +220,14 @@ public class OrderController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
+        for (Stock stock : order.getStocks()) {
+            if (stock.getUnits() < 1){
+                throw new ResourceNotFoundException("Not enough stock");
+            }
+        }
+
         for (Integer curr : order.cartMap.values()) {
-            if(curr < 1)
+            if (curr < 1)
                 throw new ResourceNotFoundException("Not enough stock");
         }
 

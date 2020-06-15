@@ -5,10 +5,10 @@ from typing import List
 from locust import HttpLocust, TaskSet, TaskSequence, seq_task, between
 
 # replace the example urls and ports with the appropriate ones
-ORDER_URL = "http://ec2-35-178-33-177.eu-west-2.compute.amazonaws.com:8080"
-PAYMENT_URL = "http://ec2-35-178-33-177.eu-west-2.compute.amazonaws.com:8080"
+ORDER_URL = "http://ec2-35-178-165-226.eu-west-2.compute.amazonaws.com:8080"
+PAYMENT_URL = "http://ec2-35-178-165-226.eu-west-2.compute.amazonaws.com:8080"
 STOCK_URL = "http://ec2-35-178-33-177.eu-west-2.compute.amazonaws.com:8080"
-USER_URL = "http://ec2-35-178-33-177.eu-west-2.compute.amazonaws.com:8080"
+USER_URL = "http://ec2-3-8-121-205.eu-west-2.compute.amazonaws.com:8080"
 
 jsonHeader = {'content-type': 'application/json'}
 
